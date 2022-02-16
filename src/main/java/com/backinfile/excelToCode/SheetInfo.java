@@ -7,17 +7,38 @@ public class SheetInfo {
     public String name;
     public String comment;
     public final ArrayList<SheetField> fields = new ArrayList<>();
-    public final ArrayList<ArrayList<String>> datas = new ArrayList<>();
+    public final ArrayList<ArrayList<String>> data = new ArrayList<>();
 
     public static class SheetField {
-        public final String name;
-        public final DataType dataType;
-        public final int arrayCount;
+        public String name;
+        public String command;
+        public DataType dataType;
+        public int arrayCount;
+        public String comment;
 
-        public SheetField(String name, DataType dataType, int arrayCount) {
-            this.name = name;
-            this.dataType = dataType;
-            this.arrayCount = arrayCount;
+        public static SheetField newField(String command, String type, String name, String comment) {
+            SheetField field = new SheetField();
+            field.command = command;
+            field.name = name;
+            field.comment = comment;
+            while (true) {
+                if (type.endsWith("[]")) {
+                    field.arrayCount++;
+                    type = type.substring(0, type.length() - 2);
+                } else {
+                    break;
+                }
+            }
+            type = type.toLowerCase();
+            for (DataType dataType : DataType.values()) {
+                if (dataType.getNames().contains(type)) {
+                    field.dataType = dataType;
+                }
+            }
+            if (field.dataType == null) {
+                return null;
+            }
+            return field;
         }
     }
 

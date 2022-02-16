@@ -53,6 +53,19 @@ public class Parser {
 
         ArrayList<ArrayList<String>> data = getStringData(sheet, 0, 4, 0, columnNum);
         Log.test.info("get data:{}", data.toString());
+        for (int i = 0; i < columnNum; i++) {
+            String command = data.get(0).get(i);
+            String typeString = data.get(1).get(i);
+            String name = data.get(2).get(i);
+            String comment = data.get(3).get(i);
+            SheetInfo.SheetField field = SheetInfo.SheetField.newField(command, typeString, name, comment);
+            if (field == null) {
+                Log.parser.error("解析字段{}.{}失败", sheetInfo.name, name);
+                return null;
+            }
+            sheetInfo.fields.add(field);
+        }
+        return null;
     }
 
     // 左闭右开
@@ -62,7 +75,7 @@ public class Parser {
             XSSFRow row = sheet.getRow(i);
             ArrayList<String> columnValues = new ArrayList<>();
             for (int j = startColumn; j < endColumn; j++) {
-                XSSFCell cell = row.getCell(startColumn);
+                XSSFCell cell = row.getCell(j);
                 columnValues.add(cell.toString());
             }
             data.add(columnValues);
