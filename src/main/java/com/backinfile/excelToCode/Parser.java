@@ -16,10 +16,8 @@ public class Parser {
         if (sheetInfo == null) {
             return null;
         }
-
-
-        // TODO
-        return null;
+        parseConfValue(sheet, sheetInfo);
+        return sheetInfo;
     }
 
     private static SheetInfo parseFiledInfo(XSSFSheet sheet) {
@@ -52,7 +50,6 @@ public class Parser {
         }
 
         ArrayList<ArrayList<String>> data = getStringData(sheet, 0, 4, 0, columnNum);
-        Log.test.info("get data:{}", data.toString());
         for (int i = 0; i < columnNum; i++) {
             String command = data.get(0).get(i);
             String typeString = data.get(1).get(i);
@@ -65,7 +62,27 @@ public class Parser {
             }
             sheetInfo.fields.add(field);
         }
-        return null;
+        return sheetInfo;
+    }
+
+    private static void parseConfValue(XSSFSheet sheet, SheetInfo sheetInfo) {
+        int rowNum = sheet.getLastRowNum();
+        int columnNum = sheetInfo.fields.size();
+        ArrayList<ArrayList<String>> data = getStringData(sheet, 4, rowNum + 1, 0, columnNum);
+        for (int i = 0; i < data.size(); i++) {
+            ArrayList<String> columnData = data.get(i);
+            boolean validate = true;
+            for (int j = 0; j < columnNum; j++) {
+                if (!sheetInfo.fields.get(j).isValidate(columnData.get(j))) {
+                    validate = false;
+                    Log.parser.warn("表{} 第{}行 值{} 数据类型不正确", sheet.getSheetName(), i + 4, columnData.get(j));
+                }
+            }
+            if (validate) {
+                sheetInfo.data.add(columnData);
+            }
+        }
+
     }
 
     // 左闭右开
