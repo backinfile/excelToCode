@@ -1,6 +1,7 @@
 package com.backinfile.excelToCode;
 
 import com.backinfile.support.Utils;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -93,7 +94,12 @@ public class Parser {
             ArrayList<String> columnValues = new ArrayList<>();
             for (int j = startColumn; j < endColumn; j++) {
                 XSSFCell cell = row.getCell(j);
-                columnValues.add(cell.toString());
+                if (cell != null) {
+                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                    columnValues.add(cell.getStringCellValue());
+                } else {
+                    columnValues.add("");
+                }
             }
             data.add(columnValues);
         }

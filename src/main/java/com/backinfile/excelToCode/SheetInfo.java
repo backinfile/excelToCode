@@ -47,6 +47,10 @@ public class SheetInfo {
         public boolean isValidate(String value) {
             return DataValidate.Instance.isValidate(dataType, arrayCount, value);
         }
+
+        public String formatJsonValueString(String value) {
+
+        }
     }
 
     private static class DataValidate {
@@ -147,10 +151,8 @@ public class SheetInfo {
             return false;
         }
 
-        private static final String stringChars = ",[]";
-
         private static boolean isStringChar(char ch) {
-            return stringChars.indexOf(ch) < 0;
+            return ",[]\"".indexOf(ch) < 0;
         }
 
         private boolean match(char ch) {
