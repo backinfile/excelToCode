@@ -4,7 +4,8 @@ import com.backinfile.support.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Predicate;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class SheetInfo {
     public String name;
@@ -16,7 +17,7 @@ public class SheetInfo {
         public String name;
         public String command;
         public DataType dataType;
-        public int arrayCount;
+        public boolean isArray;
         public String comment;
 
         public static SheetField newField(String command, String type, String name, String comment) {
@@ -24,19 +25,13 @@ public class SheetInfo {
             field.command = command;
             field.name = name;
             field.comment = comment;
-            while (true) {
-                if (type.endsWith("[]")) {
-                    field.arrayCount++;
-                    type = type.substring(0, type.length() - 2);
-                } else {
-                    break;
-                }
-            }
-            type = type.toLowerCase();
-            for (DataType dataType : DataType.values()) {
-                if (dataType.getNames().contains(type)) {
-                    field.dataType = dataType;
-                }
+
+            if (type.endsWith("[]")) {
+                field.isArray = true;
+                field.dataType = DataType.getType(type.substring(0, type.length() - 2));
+            } else {
+                field.isArray = false;
+                field.dataType = DataType.getType(type);
             }
             if (field.dataType == null) {
                 return null;
@@ -45,156 +40,67 @@ public class SheetInfo {
         }
 
         public boolean isValidate(String value) {
-            return DataValidate.Instance.isValidate(dataType, arrayCount, value);
-        }
-
-        public String formatJsonValueString(String value) {
-
-        }
-    }
-
-    private static class DataValidate {
-        public static DataValidate Instance = new DataValidate();
-        private String value;
-        private int index = 0;
-        private DataType dataType;
-
-        public boolean isValidate(DataType dataType, int arrayCount, String value) {
-            this.index = 0;
-            this.dataType = dataType;
-            this.value = value;
-
             if (Utils.isNullOrEmpty(value)) {
                 return true;
             }
-
-            if (arrayCount > 0) {
-                int leftCount = 0;
-                while (value.charAt(index) == '[') {
-                    index++;
-                    leftCount++;
-                }
-                index = 0;
-
-                if (arrayCount == leftCount) {
-                    matchArray(arrayCount - 1, true);
-                } else if (arrayCount == leftCount + 1) {
-                    matchArray(arrayCount - 1, false);
-                } else {
-                    return false;
-                }
-            } else {
-                if (!matchData()) {
-                    return false;
-                }
-            }
-            return index == value.length();
-        }
-
-        private boolean matchArray(int arrayCount, boolean warp) {
-            if (warp) {
-                if (!match('[')) {
-                    return false;
-                }
-            }
-            if (arrayCount > 0) {
-                while (matchArray(arrayCount - 1, true)) {
-                    if (!match(',')) {
-                        break;
+            if (isArray) {
+                for (String v : value.split(",")) {
+                    if (!isValidateData(v)) {
+                        return false;
                     }
                 }
             } else {
-                while (matchData()) {
-                    if (!match(',')) {
-                        break;
-                    }
-                }
-            }
-            if (warp) {
-                if (!match(']')) {
-                    return false;
-                }
+                return isValidateData(value);
             }
             return true;
         }
 
+        private static final Pattern PATTERN_INT = Pattern.compile("^\\d+$");
+        private static final Pattern PATTERN_FLOAT = Pattern.compile("^\\d+(\\.\\d*)?$");
+        private static final Pattern PATTERN_STR = Pattern.compile("^[^,]+$");
 
-        private boolean matchData() {
+        public boolean isValidateData(String value) {
             switch (dataType) {
                 case Int:
-                case Long: {
-                    if (!match(Character::isDigit)) {
-                        return false;
-                    }
-                    while (match(Character::isDigit)) ;
-                    return true;
-                }
+                case Long:
+                    return PATTERN_INT.matcher(value).find();
                 case Float:
-                case Double: {
-                    if (!match(Character::isDigit)) {
-                        return false;
-                    }
-                    while (match(Character::isDigit)) ;
-                    if (match('.')) {
-                        while (match(Character::isDigit)) ;
-                    }
-                    return true;
-                }
-                case String: {
-                    if (!match(DataValidate::isStringChar)) {
-                        return false;
-                    }
-                    while (match(DataValidate::isStringChar)) ;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static boolean isStringChar(char ch) {
-            return ",[]\"".indexOf(ch) < 0;
-        }
-
-        private boolean match(char ch) {
-            if (index >= value.length()) {
-                return false;
-            }
-            if (value.charAt(index) == ch) {
-                index++;
-                return true;
-            }
-            return false;
-        }
-
-        private boolean match(Predicate<Character> predicate) {
-            if (index >= value.length()) {
-                return false;
-            }
-            if (predicate.test(value.charAt(index))) {
-                index++;
-                return true;
+                case Double:
+                    return PATTERN_FLOAT.matcher(value).find();
+                case String:
+                    return PATTERN_STR.matcher(value).find();
+                case Boolean:
+                    return "false".equalsIgnoreCase(value) || "true".equalsIgnoreCase(value);
             }
             return false;
         }
     }
 
+
     public enum DataType {
+        Boolean("bool", "boolean"),
         Int("int", "integer"),
         Long("long"),
         Float("float"),
         Double("double"),
         String("string", "str"),
-
         ;
 
-        private final ArrayList<String> names = new ArrayList<>();
+        private final List<String> names;
 
         DataType(String... names) {
-            this.names.addAll(Arrays.asList(names));
+            this.names = Arrays.asList(names);
         }
 
-        public ArrayList<String> getNames() {
-            return names;
+        public static DataType getType(String typeString) {
+            for (DataType dataType : values()) {
+                for (String name : dataType.names) {
+                    if (name.equalsIgnoreCase(typeString)) {
+                        return dataType;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

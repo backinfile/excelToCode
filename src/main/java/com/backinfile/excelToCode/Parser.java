@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 public class Parser {
     private static final Pattern SheetNamePattern = Pattern.compile("^[A-Za-z0-9_]+$");
+    private XSSFSheet sheet;
 
     public static SheetInfo parse(XSSFSheet sheet) {
         SheetInfo sheetInfo = parseFiledInfo(sheet);
@@ -62,6 +63,13 @@ public class Parser {
                 return null;
             }
             sheetInfo.fields.add(field);
+        }
+        if (sheetInfo.fields.isEmpty()) {
+            return null;
+        }
+        if (sheetInfo.fields.get(0).isArray) {
+            Log.parser.error("解析失败 表{} 第一个字段不能是数组", sheet.getSheetName());
+            return null;
         }
         return sheetInfo;
     }
