@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
-public class Exporter {
+public class JsonExporter {
     public static void exportToJson(SheetInfo sheetInfo) {
         exportToJson(sheetInfo, "Conf" + Utils2.capitalize(sheetInfo.name) + ".json");
     }

@@ -1,8 +1,24 @@
 package com.backinfile.excelToCode;
 
-@ConfUtils.AutoGen
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * 此文件是自动生成的 不要手动修改
+ */
 public class ConfManager {
-    public static void loadConf(String path) {
-        ConfItem.Data.getInstance().reload(path);
+
+    // 加载全部配置
+    public static void loadAll() {
+        ConfItem.getData();
+    }
+
+    // 热更新
+    public static Set<String> reloadAll() {
+        Set<String> changed = new HashSet<>();
+        if (ConfItem.clearIfChanged()) {
+            changed.add("ConfItem");
+        }
+        return changed;
     }
 }

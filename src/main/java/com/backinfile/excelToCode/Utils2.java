@@ -11,8 +11,9 @@ public class Utils2 {
         if (Utils.isNullOrEmpty(str)) {
             return "";
         }
-        char[] chars = str.toCharArray();
-        chars[0] = Character.toUpperCase(chars[0]);
-        return String.valueOf(chars);
+        if (Character.isUpperCase(str.charAt(0))) {
+            return str;
+        }
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
     }
 }

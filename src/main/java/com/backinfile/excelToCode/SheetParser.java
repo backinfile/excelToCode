@@ -9,16 +9,15 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-public class Parser {
+public class SheetParser {
     private static final Pattern SheetNamePattern = Pattern.compile("^[A-Za-z0-9_]+$");
     private XSSFSheet sheet;
 
     public static SheetInfo parse(XSSFSheet sheet) {
         SheetInfo sheetInfo = parseFiledInfo(sheet);
-        if (sheetInfo == null) {
-            return null;
+        if (sheetInfo != null) {
+            parseConfValue(sheet, sheetInfo);
         }
-        parseConfValue(sheet, sheetInfo);
         return sheetInfo;
     }
 
@@ -28,7 +27,7 @@ public class Parser {
         String[] sheetNameSplit = sheet.getSheetName().split("\\|");
         if (sheetNameSplit.length == 2) {
             if (SheetNamePattern.matcher(sheetNameSplit[0]).find()) {
-                sheetInfo.name = sheetNameSplit[0];
+                sheetInfo.name = Utils2.capitalize(sheetNameSplit[0]);
                 sheetInfo.comment = sheetNameSplit[1];
             }
         }
