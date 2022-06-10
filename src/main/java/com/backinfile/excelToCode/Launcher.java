@@ -6,81 +6,141 @@ import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Launcher {
     public static void main(String[] args) {
 
         // 解析参数
         Options options = new Options();
-        {
+        Option input = new Option("i", "input", true, "input xlsx file or path");
+        input.setRequired(false);
+        options.addOption(input);
 
-            Option input = new Option("i", "input", true, "input xlsx file or path");
-            input.setRequired(false);
-            options.addOption(input);
+        Option language = new Option("l", "inputLanguage", true, "output inputLanguage, such as json or java");
+        language.setRequired(true);
+        options.addOption(language);
 
-            Option language = new Option("l", "language", true, "output language, such as json or java");
-            language.setRequired(true);
-            options.addOption(language);
+        Option output = new Option("o", "output", true, "output path");
+        output.setRequired(true);
+        options.addOption(output);
 
-            Option output = new Option("o", "output", true, "output path");
-            output.setRequired(true);
-            options.addOption(output);
+        Option packagePath = new Option("p", "package", true, "java package path if choose java");
+        packagePath.setRequired(false);
+        options.addOption(packagePath);
 
-            Option packagePath = new Option("p", "package", true, "java package path if choose java");
-            packagePath.setRequired(false);
-            options.addOption(packagePath);
+        Option clear = new Option("c", "clear", false, "clear outputPath before output files");
+        clear.setRequired(false);
+        options.addOption(clear);
 
-            Option clear = new Option("c", "clear", false, "clear outputPath before output files");
-            clear.setRequired(false);
-            options.addOption(clear);
+        Option read = new Option("r", "read", false, "read json path if choose java");
+        read.setRequired(false);
+        options.addOption(read);
 
-            Option read = new Option("r", "read", false, "read json path if choose java");
-            read.setRequired(false);
-            options.addOption(read);
-        }
-
-
+        HelpFormatter helpFormatter = new HelpFormatter();
         if (args.length == 0) {
-            new HelpFormatter().printHelp(Config.PROJECT_NAME, options);
+            helpFormatter.printHelp(Config.PROJECT_NAME, options);
             return;
         }
 
-        CommandLine cmd = null;
+        CommandLine cmd;
         try {
             cmd = new DefaultParser().parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            new HelpFormatter().printHelp(Config.PROJECT_NAME, options);
+            helpFormatter.printHelp(Config.PROJECT_NAME, options);
             return;
         }
 
-        // 检查复杂参数
-        boolean toExit = false;
-        if (cmd.getOptionValue("language").equalsIgnoreCase("java")) {
-            if (!cmd.hasOption("package")) {
-                toExit = true;
-                System.out.println("missing arg package");
+        // 检查复杂配置
+        String inputLanguage = cmd.getOptionValue(language).toLowerCase();
+        switch (inputLanguage) {
+            case "java": {
+                if (!cmd.hasOption(packagePath)) {
+                    System.out.println("missing arg package");
+                    return;
+                }
+                if (!cmd.hasOption(read)) {
+                    System.out.println("missing arg read");
+                    return;
+                }
+                break;
             }
-            if (!cmd.hasOption("read")) {
-                toExit = true;
-                System.out.println("missing arg read");
+            case "json": {
+                break;
             }
-        }
-        if (toExit) {
-            return;
+            default: {
+                System.out.println("unknown inputLanguage");
+                return;
+            }
         }
 
 
-        try (OPCPackage opcPackage = OPCPackage.open("test.xlsx", PackageAccess.READ)) {
-            XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
-            for (int index = 0; index < workbook.getNumberOfSheets(); index++) {
-                XSSFSheet sheet = workbook.getSheetAt(index);
-                SheetInfo sheetInfo = SheetParser.parse(sheet);
-                if (sheetInfo != null) {
+        // 读取配置
+        Config.ARG_LANGUAGE = inputLanguage;
+        Config.ARG_INPUT = cmd.getOptionValue(input);
+        Config.ARG_OUTPUT = cmd.getOptionValue(output);
+        if (cmd.hasOption(packagePath)) {
+            Config.ARG_PACKAGE = cmd.getOptionValue(packagePath);
+        }
+        Config.ARG_CLEAR = cmd.hasOption(clear);
+        if (cmd.hasOption(read)) {
+            Config.ARG_READ = cmd.getOptionValue(read);
+        }
+
+
+        // 读取excel
+        List<SheetInfo> sheetInfos = new ArrayList<>();
+        File file = new File(Config.ARG_INPUT);
+        findSheet(file, sheetInfos);
+
+
+        // 开始导出
+        switch (Config.ARG_LANGUAGE) {
+            case "json": {
+                for (SheetInfo sheetInfo : sheetInfos) {
                     JsonExporter.exportToJson(sheetInfo);
                 }
+                break;
             }
-        } catch (Exception e) {
-            Log.core.error("", e);
+            case "java": {
+                for (SheetInfo sheetInfo : sheetInfos) {
+                    JavaExporter.exportToJava(sheetInfo);
+                }
+                break;
+            }
+            default:
+                System.out.println("unsupported language");
+        }
+    }
+
+    private static void findSheet(File file, List<SheetInfo> sheetInfos) {
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.isDirectory()) {
+            try (OPCPackage opcPackage = OPCPackage.open(file.getAbsolutePath(), PackageAccess.READ)) {
+                XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
+                for (int index = 0; index < workbook.getNumberOfSheets(); index++) {
+                    XSSFSheet sheet = workbook.getSheetAt(index);
+                    SheetInfo sheetInfo = SheetParser.parse(sheet);
+                    if (sheetInfo != null) {
+                        sheetInfos.add(sheetInfo);
+                    }
+                }
+            } catch (Exception e) {
+                Log.core.error("", e);
+            }
+            return;
+        }
+
+        File[] files = file.listFiles();
+        if (files != null) {
+            for (File subFile : files) {
+                findSheet(subFile, sheetInfos);
+            }
         }
     }
 }
