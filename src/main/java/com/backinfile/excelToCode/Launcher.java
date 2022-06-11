@@ -7,12 +7,15 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Launcher {
     public static void main(String[] args) {
-
         // 解析参数
         Options options = new Options();
         Option input = new Option("i", "input", true, "input xlsx file or path");
@@ -90,7 +93,20 @@ public class Launcher {
             Config.ARG_READ = cmd.getOptionValue(read);
         }
 
-        // TODO clear
+        if (Config.ARG_CLEAR) {
+            File file = new File(Config.ARG_OUTPUT);
+            if (file.exists()) {
+                try {
+                    Files.walk(Paths.get(Config.ARG_OUTPUT))
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                    Log.core.info("clear output path {}", Config.ARG_OUTPUT);
+                } catch (Exception e) {
+                    Log.core.error("error on clear output path", e);
+                }
+            }
+        }
 
         // 读取excel
         List<SheetInfo> sheetInfos = new ArrayList<>();

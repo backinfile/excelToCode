@@ -5,14 +5,10 @@
             <PatternLayout
                     pattern="%d{HH:mm:ss.SSS} [%c][%p] %msg%n"/>
         </Console>
-        <Console name="Console2" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} (%F:%L) [%c][%p] %msg%n"/>
-        </Console>
     </Appenders>
     <Loggers>
         <Root level="info">
-            <AppenderRef ref="Console2"/>
+            <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
 </configuration>
