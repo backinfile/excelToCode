@@ -1,8 +1,12 @@
 package com.backinfile.excelToCode;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class JsonExporter {
@@ -11,28 +15,23 @@ public class JsonExporter {
     }
 
     public static void exportToJson(SheetInfo sheetInfo, String fileName) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (ArrayList<String> columnData : sheetInfo.data) {
-            sb.append("{");
+        JSONArray jsonArray = new JSONArray();
+        for (ArrayList<Object> columnData : sheetInfo.parsedData) {
+            JSONObject jsonObject = new JSONObject();
             for (int i = 0; i < sheetInfo.fields.size(); i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                }
                 SheetInfo.SheetField field = sheetInfo.fields.get(i);
-                sb.append("\"");
-                sb.append(field.name);
-                sb.append("\": ");
-                sb.append(columnData.get(i));
+                jsonObject.put(field.name, columnData.get(i));
             }
-            sb.append("}, ");
+            jsonArray.add(jsonObject);
         }
-        sb.append("]");
-        File file = new File(fileName);
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file))) {
-            writer.write(sb.toString());
+        File file = new File(Config.ARG_OUTPUT, fileName);
+        file.getParentFile().mkdirs();
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+            writer.write(jsonArray.toJSONString());
+            writer.flush();
+            Log.exporter.info("write success {}", file.getAbsolutePath());
         } catch (Exception e) {
-            Log.exporter.error("", e);
+            Log.exporter.error("write file error " + e.getMessage());
         }
     }
 }

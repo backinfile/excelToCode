@@ -1,6 +1,7 @@
 package com.backinfile.test;
 
 import com.backinfile.excelToCode.SheetInfo;
+import com.backinfile.test.gen.ConfigManager;
 import org.junit.jupiter.api.Test;
 
 public class ConfigTest {
@@ -25,5 +26,11 @@ public class ConfigTest {
         assert SheetInfo.SheetField.newField("cs", "str[]", "sn", "").isValidate("123,456");
         assert SheetInfo.SheetField.newField("cs", "str[]", "sn", "").isValidate("哈哈是,wear");
         assert SheetInfo.SheetField.newField("cs", "boolean[]", "sn", "").isValidate("true");
+    }
+
+    @Test
+    public void testClass() {
+        ConfigManager.loadAll();
+        System.out.println();
     }
 }

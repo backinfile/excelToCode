@@ -16,7 +16,7 @@ public class Launcher {
         // 解析参数
         Options options = new Options();
         Option input = new Option("i", "input", true, "input xlsx file or path");
-        input.setRequired(false);
+        input.setRequired(true);
         options.addOption(input);
 
         Option language = new Option("l", "inputLanguage", true, "output inputLanguage, such as json or java");
@@ -35,7 +35,7 @@ public class Launcher {
         clear.setRequired(false);
         options.addOption(clear);
 
-        Option read = new Option("r", "read", false, "read json path if choose java");
+        Option read = new Option("r", "read", true, "read json path if choose java");
         read.setRequired(false);
         options.addOption(read);
 
@@ -90,6 +90,7 @@ public class Launcher {
             Config.ARG_READ = cmd.getOptionValue(read);
         }
 
+        // TODO clear
 
         // 读取excel
         List<SheetInfo> sheetInfos = new ArrayList<>();
@@ -101,14 +102,26 @@ public class Launcher {
         switch (Config.ARG_LANGUAGE) {
             case "json": {
                 for (SheetInfo sheetInfo : sheetInfos) {
-                    JsonExporter.exportToJson(sheetInfo);
+                    try {
+                        JsonExporter.exportToJson(sheetInfo);
+                    } catch (Exception e) {
+                        Log.exporter.error("", e);
+                    }
                 }
                 break;
             }
             case "java": {
+                JavaExporter.exportBase();
+                List<SheetInfo> successList = new ArrayList<>();
                 for (SheetInfo sheetInfo : sheetInfos) {
-                    JavaExporter.exportToJava(sheetInfo);
+                    try {
+                        JavaExporter.exportToJava(sheetInfo);
+                        successList.add(sheetInfo);
+                    } catch (Exception e) {
+                        Log.exporter.error("", e);
+                    }
                 }
+                JavaExporter.exportManager(successList);
                 break;
             }
             default:
@@ -120,18 +133,20 @@ public class Launcher {
         if (!file.exists()) {
             return;
         }
-        if (!file.isDirectory()) {
-            try (OPCPackage opcPackage = OPCPackage.open(file.getAbsolutePath(), PackageAccess.READ)) {
-                XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
-                for (int index = 0; index < workbook.getNumberOfSheets(); index++) {
-                    XSSFSheet sheet = workbook.getSheetAt(index);
-                    SheetInfo sheetInfo = SheetParser.parse(sheet);
-                    if (sheetInfo != null) {
-                        sheetInfos.add(sheetInfo);
+        if (file.isFile()) {
+            if (file.getName().endsWith(".xlsx")) {
+                try (OPCPackage opcPackage = OPCPackage.open(file.getAbsolutePath(), PackageAccess.READ)) {
+                    XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
+                    for (int index = 0; index < workbook.getNumberOfSheets(); index++) {
+                        XSSFSheet sheet = workbook.getSheetAt(index);
+                        SheetInfo sheetInfo = SheetParser.parse(sheet);
+                        if (sheetInfo != null) {
+                            sheetInfos.add(sheetInfo);
+                        }
                     }
+                } catch (Exception e) {
+                    Log.core.error("", e);
                 }
-            } catch (Exception e) {
-                Log.core.error("", e);
             }
             return;
         }

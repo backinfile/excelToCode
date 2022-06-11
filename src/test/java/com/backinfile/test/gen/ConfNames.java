@@ -1,36 +1,29 @@
-package com.backinfile.test;
+package com.backinfile.test.gen;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.*;
+import java.util.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 此文件是自动生成的 不要手动修改
  */
-public class ConfItem extends ConfigBase {
+public class ConfNames extends ConfigBase {
     private static volatile Data _instance = null;
 
-    public static ConfItem get(int id) {
-        return getData().get(id);
+    public static ConfNames get(int sn) {
+        return getData().get(sn);
     }
 
-    public static Collection<ConfItem> getAll() {
+    public static Collection<ConfNames> getAll() {
         return getData().getAll();
     }
 
     private final int sn;
     private final String name;
-    private final List<Integer> types;
 
-    private ConfItem(int sn, String name, List<Integer> types) {
+    private ConfNames(int sn, String name) {
         this.sn = sn;
         this.name = name;
-        this.types = types;
     }
 
     public int getSn() {
@@ -41,19 +34,15 @@ public class ConfItem extends ConfigBase {
         return name;
     }
 
-    public List<Integer> getTypes() {
-        return types;
-    }
-
     static Data getData() {
         Data current = _instance;
         if (_instance == null) {
             synchronized (Data.class) {
                 if (_instance == null) {
                     _instance = new Data();
-                    current = _instance;
-                    getLogger().info("ConfItem load!");
+                    logger.info("ConfNames load!");
                 }
+                current = _instance;
             }
         }
         return current;
@@ -63,11 +52,11 @@ public class ConfItem extends ConfigBase {
         if (_instance != null) {
             synchronized (Data.class) {
                 if (_instance != null) {
-                    String data = readFileString("ConfItem.json");
+                    String data = readFileString("ConfNames.json");
                     String newHash = md5(data);
                     if (!newHash.equals(_instance.contentHash)) {
                         _instance = null;
-                        getLogger().info("ConfItem changed!");
+                        logger.info("ConfNames changed!");
                         return true;
                     }
                 }
@@ -77,30 +66,29 @@ public class ConfItem extends ConfigBase {
     }
 
     private static class Data {
-        private final Map<Integer, ConfItem> confMap = new HashMap<>();
+        private final Map<Integer, ConfNames> confMap = new HashMap<>();
         private final String contentHash;
 
         private Data() {
-            String data = readFileString("ConfItem.json");
+            String data = readFileString("ConfNames.json");
             this.contentHash = md5(data);
 
             JSONArray jsonArray = JSON.parseArray(data);
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
-                ConfItem confItem = new ConfItem(
-                        jsonObject.getInteger("sn"),
-                        jsonObject.getString("name"),
-                        parseIntegerList(jsonObject.getString("types"))
+                ConfNames _conf = new ConfNames(
+                        jsonObject.getInteger("sn"), 
+                        jsonObject.getString("name")
                 );
-                this.confMap.put(confItem.sn, confItem);
+                this.confMap.put(_conf.sn, _conf);
             }
         }
 
-        public ConfItem get(int id) {
-            return confMap.get(id);
+        public ConfNames get(int sn) {
+            return confMap.get(sn);
         }
 
-        public Collection<ConfItem> getAll() {
+        public Collection<ConfNames> getAll() {
             return confMap.values();
         }
     }

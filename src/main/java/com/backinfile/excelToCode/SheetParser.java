@@ -79,15 +79,19 @@ public class SheetParser {
         ArrayList<ArrayList<String>> data = getStringData(sheet, 4, rowNum + 1, 0, columnNum);
         for (int i = 0; i < data.size(); i++) {
             ArrayList<String> columnData = data.get(i);
+            ArrayList<Object> columnValueData = new ArrayList<>();
             boolean validate = true;
             for (int j = 0; j < columnNum; j++) {
-                if (!sheetInfo.fields.get(j).isValidate(columnData.get(j))) {
+                Object value = sheetInfo.fields.get(j).parseValue(columnData.get(j));
+                columnValueData.add(value);
+                if (value == null) {
                     validate = false;
                     Log.parser.warn("表{} 第{}行 值{} 数据类型不正确", sheet.getSheetName(), i + 4, columnData.get(j));
                 }
             }
             if (validate) {
                 sheetInfo.data.add(columnData);
+                sheetInfo.parsedData.add(columnValueData);
             }
         }
 

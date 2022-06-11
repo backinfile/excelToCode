@@ -12,7 +12,7 @@ public class FreeMarkerManager {
     /**
      * 读取工程外的模板文件生成文件
      */
-    public static void formatFile(String filePath, String fileName, Map<String, Object> rootMap, String outPath,
+    public static void formatFile(String filePath, String templateFileName, Map<String, Object> rootMap, String outPath,
                                   String outFileName) {
         try {
             Configuration config = new Configuration(Configuration.VERSION_2_3_22);
@@ -20,7 +20,7 @@ public class FreeMarkerManager {
             config.setDirectoryForTemplateLoading(new File(filePath));
             config.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
-            formatTemplate(config, fileName, rootMap, outPath, outFileName);
+            formatTemplate(config, templateFileName, rootMap, outPath, outFileName);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -29,15 +29,15 @@ public class FreeMarkerManager {
     /**
      * 读取工程内的模板文件生成文件
      */
-    public static void formatFileInProj(String templatePath, String fileName,
+    public static void formatFileInProj(ClassLoader classLoader, String templatePath, String templateFileName,
                                         Map<String, Object> rootMap, String outPath, String outFileName) {
         try {
             Configuration config = new Configuration(Configuration.VERSION_2_3_22);
             config.setDefaultEncoding("UTF-8");
             config.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            config.setClassLoaderForTemplateLoading(FreeMarkerManager.class.getClassLoader(), templatePath);
+            config.setClassLoaderForTemplateLoading(classLoader, templatePath);
 
-            formatTemplate(config, fileName, rootMap, outPath, outFileName);
+            formatTemplate(config, templateFileName, rootMap, outPath, outFileName);
         } catch (Exception e) {
             Log.gen.error("", e);
         }

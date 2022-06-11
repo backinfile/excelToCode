@@ -1,55 +1,30 @@
-package com.backinfile.test;
+package ${packageName};
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.security.*;
+import java.util.*;
 
 /**
  * 此文件是自动生成的 不要手动修改
  */
 public abstract class ConfigBase {
-    private static final String JSON_PATH = "";
+    private static final String JSON_PATH = "${jsonPath}";
 
-    // region Logger
-    private static Logger logger = null;
-    private static final Logger EMPTY_LOGGER = new Logger() {
-        @Override
+    public static Logger logger = Logger.EMPTY_INSTANCE;
+
+    public static class Logger {
+        public static final Logger EMPTY_INSTANCE = new Logger();
+
         public void info(String message) {
         }
 
-        @Override
         public void error(String message) {
         }
 
-        @Override
         public void error(String message, Exception e) {
         }
-    };
-
-    public interface Logger {
-        void info(String message);
-
-        void error(String message);
-
-        void error(String message, Exception e);
     }
-
-    public static void setLogger(Logger logger) {
-        ConfigBase.logger = logger;
-    }
-
-    public static Logger getLogger() {
-        return logger == null ? EMPTY_LOGGER : logger;
-    }
-    // endregion
-
 
     @FunctionalInterface
     public interface ReloadListener {
@@ -59,7 +34,7 @@ public abstract class ConfigBase {
     public static String readFileString(String fileName) {
         File file = new File(JSON_PATH, fileName);
         if (!file.exists()) {
-            getLogger().error("file " + file.getAbsolutePath() + " not found");
+            logger.error("file " + file.getAbsolutePath() + " not found");
             return "";
         }
         StringBuilder sb = new StringBuilder();
@@ -73,7 +48,7 @@ public abstract class ConfigBase {
                 }
             }
         } catch (Exception e) {
-            getLogger().error("error in readFileString", e);
+            logger.error("error in readFileString", e);
         }
         return sb.toString();
     }
@@ -82,7 +57,7 @@ public abstract class ConfigBase {
         if (str == null || str.isEmpty()) {
             return "";
         }
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {

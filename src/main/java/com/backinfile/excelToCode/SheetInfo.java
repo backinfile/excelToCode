@@ -5,13 +5,13 @@ import com.backinfile.support.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class SheetInfo {
     public String name;
     public String comment;
     public final ArrayList<SheetField> fields = new ArrayList<>();
     public final ArrayList<ArrayList<String>> data = new ArrayList<>();
+    public final ArrayList<ArrayList<Object>> parsedData = new ArrayList<>();
 
     public static class SheetField {
         public String name;
@@ -39,43 +39,31 @@ public class SheetInfo {
             return field;
         }
 
+        public Object parseValue(String value) {
+            if (isArray) {
+                List<Object> valueList = new ArrayList<>();
+                for (String s : value.split(",")) {
+                    valueList.add(dataType.parseValue(s));
+                }
+                return valueList;
+            }
+            return dataType.parseValue(value);
+        }
+
         public boolean isValidate(String value) {
             if (Utils.isNullOrEmpty(value)) {
                 return true;
             }
-            if (isArray) {
-                for (String v : value.split(",")) {
-                    if (!isValidateData(v)) {
-                        return false;
-                    }
-                }
-            } else {
-                return isValidateData(value);
-            }
-            return true;
+            return parseValue(value) != null;
         }
 
-        private static final Pattern PATTERN_INT = Pattern.compile("^\\d+$");
-        private static final Pattern PATTERN_FLOAT = Pattern.compile("^\\d+(\\.\\d*)?$");
-        private static final Pattern PATTERN_STR = Pattern.compile("^[^,]+$");
-
-        public boolean isValidateData(String value) {
-            switch (dataType) {
-                case Int:
-                case Long:
-                    return PATTERN_INT.matcher(value).find();
-                case Float:
-                case Double:
-                    return PATTERN_FLOAT.matcher(value).find();
-                case String:
-                    return PATTERN_STR.matcher(value).find();
-                case Boolean:
-                    return "false".equalsIgnoreCase(value) || "true".equalsIgnoreCase(value);
+        public String getTypeString(boolean gen) {
+            if (isArray) {
+                return "List<" + dataType.getTypeString(true) + ">";
             }
-            return false;
+            return dataType.getTypeString(gen);
         }
     }
-
 
     public enum DataType {
         Boolean("bool", "boolean"),
@@ -101,6 +89,63 @@ public class SheetInfo {
                 }
             }
             return null;
+        }
+
+        public Object getDefaultValue() {
+            switch (this) {
+                case Boolean:
+                    return false;
+                case Int:
+                    return 0;
+                case Long:
+                    return 0L;
+                case Float:
+                    return 0f;
+                case Double:
+                    return 0d;
+                case String:
+                    return "";
+            }
+            return null;
+        }
+
+        public Object parseValue(String data) {
+            if (data == null || data.isEmpty()) {
+                return getDefaultValue();
+            }
+            switch (this) {
+                case Boolean:
+                    return java.lang.Boolean.parseBoolean(data);
+                case Int:
+                    return java.lang.Integer.parseInt(data);
+                case Long:
+                    return java.lang.Long.parseLong(data);
+                case Float:
+                    return java.lang.Float.parseFloat(data);
+                case Double:
+                    return java.lang.Double.parseDouble(data);
+                case String:
+                    return data;
+            }
+            return null;
+        }
+
+        public String getTypeString(boolean gen) {
+            switch (this) {
+                case Boolean:
+                    return gen ? "Boolean" : "boolean";
+                case Int:
+                    return gen ? "Integer" : "int";
+                case Long:
+                    return gen ? "Long" : "long";
+                case Float:
+                    return gen ? "Float" : "float";
+                case Double:
+                    return gen ? "Double" : "double";
+                case String:
+                    return "String";
+            }
+            return "Void";
         }
     }
 }
