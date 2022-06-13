@@ -10,6 +10,7 @@ import java.util.*;
  */
 public abstract class ConfigBase {
     private static final String JSON_PATH = "${jsonPath}";
+    private static final char[] HEX = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     public static Logger logger = Logger.EMPTY_INSTANCE;
 
@@ -65,7 +66,13 @@ public abstract class ConfigBase {
         }
         md.update(str.getBytes(StandardCharsets.UTF_8));
         byte[] digest = md.digest();
-        return Arrays.toString(digest);
+        char[] result = new char[digest.length * 2];
+        for (int i = 0; i < digest.length; i++) {
+            byte b = digest[i];
+            result[i * 2] = HEX[b & 0xF];
+            result[i * 2 + 1] = HEX[(b >>> 4) & 0xF];
+        }
+        return String.valueOf(result);
     }
 
 
