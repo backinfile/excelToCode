@@ -63,10 +63,12 @@ public class Launcher {
             case "java": {
                 if (!cmd.hasOption(packagePath)) {
                     System.out.println("missing arg package");
+                    helpFormatter.printHelp(Config.PROJECT_NAME, options);
                     return;
                 }
                 if (!cmd.hasOption(read)) {
                     System.out.println("missing arg read");
+                    helpFormatter.printHelp(Config.PROJECT_NAME, options);
                     return;
                 }
                 break;
@@ -76,6 +78,7 @@ public class Launcher {
             }
             default: {
                 System.out.println("unknown inputLanguage");
+                helpFormatter.printHelp(Config.PROJECT_NAME, options);
                 return;
             }
         }
