@@ -16,15 +16,16 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
     implementation 'com.github.backinfile:support:v1.0.2'
-    implementation group: 'org.apache.poi', name: 'poi', version: '3.9'
-    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '3.9'
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.2.2'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.2'
     
     implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.31'
     implementation group: 'com.alibaba', name: 'fastjson', version: '1.2.78'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
 }
 

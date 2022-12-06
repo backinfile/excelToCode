@@ -114,8 +114,18 @@ public class SheetInfo {
                 return getDefaultValue();
             }
             switch (this) {
-                case Boolean:
-                    return java.lang.Boolean.parseBoolean(data);
+                case Boolean: {
+                    if ("true".equalsIgnoreCase(data)) {
+                        return true;
+                    } else if ("false".equalsIgnoreCase(data)) {
+                        return false;
+                    } else if ("1".equalsIgnoreCase(data)) {
+                        return true;
+                    } else if ("0".equalsIgnoreCase(data)) {
+                        return false;
+                    }
+                    return null;
+                }
                 case Int:
                     return java.lang.Integer.parseInt(data);
                 case Long:

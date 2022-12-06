@@ -10,4 +10,8 @@ public class Config {
     public static String ARG_PACKAGE;
     public static Boolean ARG_CLEAR;
     public static String ARG_READ;
+
+    public static void main(String[] args) {
+        Log.gen.info("hhha");
+    }
 }
