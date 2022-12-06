@@ -77,12 +77,12 @@ public abstract class ConfigBase {
 
 
     public static List<String> parseStringList(String str) {
-        return Arrays.asList(str.split(","));
+        return Arrays.asList(str.substring(1, str.length() - 1).split(","));
     }
 
     public static List<Integer> parseIntegerList(String str) {
         ArrayList<Integer> list = new ArrayList<>();
-        for (String s : str.split(",")) {
+        for (String s : str.substring(1, str.length() - 1).split(",")) {
             list.add(Integer.parseInt(s));
         }
         return Collections.unmodifiableList(list);
@@ -90,7 +90,7 @@ public abstract class ConfigBase {
 
     public static List<Long> parseLongList(String str) {
         ArrayList<Long> list = new ArrayList<>();
-        for (String s : str.split(",")) {
+        for (String s : str.substring(1, str.length() - 1).split(",")) {
             list.add(Long.parseLong(s));
         }
         return Collections.unmodifiableList(list);
@@ -98,7 +98,7 @@ public abstract class ConfigBase {
 
     public static List<Float> parseFloatList(String str) {
         ArrayList<Float> list = new ArrayList<>();
-        for (String s : str.split(",")) {
+        for (String s : str.substring(1, str.length() - 1).split(",")) {
             list.add(Float.parseFloat(s));
         }
         return Collections.unmodifiableList(list);
@@ -106,7 +106,7 @@ public abstract class ConfigBase {
 
     public static List<Double> parseDoubleList(String str) {
         ArrayList<Double> list = new ArrayList<>();
-        for (String s : str.split(",")) {
+        for (String s : str.substring(1, str.length() - 1).split(",")) {
             list.add(Double.parseDouble(s));
         }
         return Collections.unmodifiableList(list);
@@ -114,7 +114,7 @@ public abstract class ConfigBase {
 
     public static List<Boolean> parseBooleanList(String str) {
         ArrayList<Boolean> list = new ArrayList<>();
-        for (String s : str.split(",")) {
+        for (String s : str.substring(1, str.length() - 1).split(",")) {
             list.add(Boolean.parseBoolean(s));
         }
         return Collections.unmodifiableList(list);
