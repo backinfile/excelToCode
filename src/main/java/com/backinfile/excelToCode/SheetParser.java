@@ -81,8 +81,15 @@ public class SheetParser {
         int rowNum = sheet.getLastRowNum();
         int columnNum = sheetInfo.dataColumnSize;
         ArrayList<ArrayList<String>> data = getStringData(sheet, 4, rowNum + 1, 0, columnNum);
+        if (data.isEmpty()) {
+            return;
+        }
         for (int i = 0; i < data.size(); i++) {
             ArrayList<String> columnData = data.get(i);
+            // 忽略没有id的行，忽略以#开头的行
+            if (columnData.isEmpty() || Utils.isNullOrEmpty(columnData.get(0)) || columnData.get(0).startsWith("#")) {
+                continue;
+            }
             ArrayList<Object> columnValueData = new ArrayList<>();
             boolean validate = true;
             for (int j = 0; j < sheetInfo.fields.size(); j++) {
