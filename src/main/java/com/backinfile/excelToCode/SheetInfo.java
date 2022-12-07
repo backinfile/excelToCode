@@ -4,14 +4,15 @@ import com.backinfile.support.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SheetInfo {
     public String name;
     public String comment;
-    public final ArrayList<SheetField> fields = new ArrayList<>();
-    public final ArrayList<ArrayList<String>> data = new ArrayList<>();
-    public final ArrayList<ArrayList<Object>> parsedData = new ArrayList<>();
+    public int dataColumnSize; // column size in excel file
+    public final ArrayList<SheetField> fields = new ArrayList<>(); // size may less than excel file
+    public final ArrayList<ArrayList<Object>> parsedData = new ArrayList<>(); // size may less than excel file
 
     public static class SheetField {
         public String name;
@@ -19,12 +20,14 @@ public class SheetInfo {
         public DataType dataType;
         public boolean isArray;
         public String comment;
+        public int columnIndex;
 
-        public static SheetField newField(String command, String type, String name, String comment) {
+        public static SheetField newField(String command, String type, String name, String comment, int columnIndex) {
             SheetField field = new SheetField();
             field.command = command;
             field.name = name;
             field.comment = comment;
+            field.columnIndex = columnIndex;
 
             if (type.endsWith("[]")) {
                 field.isArray = true;
@@ -41,6 +44,12 @@ public class SheetInfo {
 
         public Object parseValue(String value) {
             if (isArray) {
+                if (Utils.isNullOrEmpty(value)) {
+                    return Collections.emptyList();
+                }
+                if (!value.contains(",")) {
+                    return Collections.singletonList(dataType.parseValue(value));
+                }
                 List<Object> valueList = new ArrayList<>();
                 for (String s : value.split(",")) {
                     valueList.add(dataType.parseValue(s));

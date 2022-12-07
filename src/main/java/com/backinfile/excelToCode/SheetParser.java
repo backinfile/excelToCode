@@ -1,7 +1,6 @@
 package com.backinfile.excelToCode;
 
 import com.backinfile.support.Utils;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -50,6 +49,7 @@ public class SheetParser {
         for (int rowIndex = 0; rowIndex < 4; rowIndex++) {
             columnNum = Math.min(columnNum, sheet.getRow(rowIndex).getLastCellNum());
         }
+        sheetInfo.dataColumnSize = columnNum;
 
         ArrayList<ArrayList<String>> data = getStringData(sheet, 0, 4, 0, columnNum);
         for (int i = 0; i < columnNum; i++) {
@@ -57,7 +57,10 @@ public class SheetParser {
             String typeString = data.get(1).get(i);
             String name = data.get(2).get(i);
             String comment = data.get(3).get(i);
-            SheetInfo.SheetField field = SheetInfo.SheetField.newField(command, typeString, name, comment);
+            if (Utils.isNullOrEmpty(name)) {
+                continue;
+            }
+            SheetInfo.SheetField field = SheetInfo.SheetField.newField(command, typeString, name, comment, i);
             if (field == null) {
                 Log.parser.error("解析字段{}.{}失败", sheetInfo.name, name);
                 return null;
@@ -76,22 +79,23 @@ public class SheetParser {
 
     private static void parseConfValue(XSSFSheet sheet, SheetInfo sheetInfo) {
         int rowNum = sheet.getLastRowNum();
-        int columnNum = sheetInfo.fields.size();
+        int columnNum = sheetInfo.dataColumnSize;
         ArrayList<ArrayList<String>> data = getStringData(sheet, 4, rowNum + 1, 0, columnNum);
         for (int i = 0; i < data.size(); i++) {
             ArrayList<String> columnData = data.get(i);
             ArrayList<Object> columnValueData = new ArrayList<>();
             boolean validate = true;
-            for (int j = 0; j < columnNum; j++) {
-                Object value = sheetInfo.fields.get(j).parseValue(columnData.get(j));
+            for (int j = 0; j < sheetInfo.fields.size(); j++) {
+                SheetInfo.SheetField field = sheetInfo.fields.get(j);
+                String inputData = columnData.get(field.columnIndex);
+                Object value = field.parseValue(inputData);
                 columnValueData.add(value);
                 if (value == null) {
                     validate = false;
-                    Log.parser.warn("表{} 第{}行 值{} 数据类型不正确", sheet.getSheetName(), i + 4, columnData.get(j));
+                    Log.parser.warn("表{} 第{}行 值{} 数据类型不正确", sheet.getSheetName(), i + 4, inputData);
                 }
             }
             if (validate) {
-                sheetInfo.data.add(columnData);
                 sheetInfo.parsedData.add(columnValueData);
             }
         }

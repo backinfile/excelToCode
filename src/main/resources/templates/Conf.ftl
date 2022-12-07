@@ -40,7 +40,7 @@ public class ${className} extends ConfigBase {
             synchronized (Data.class) {
                 if (_instance == null) {
                     _instance = new Data();
-                    logger.info("${className} load!");
+                    getLogger().info("${className} load!");
                 }
                 current = _instance;
             }
@@ -53,10 +53,10 @@ public class ${className} extends ConfigBase {
             synchronized (Data.class) {
                 if (_instance != null) {
                     String data = readFileString("${className}.json");
-                    String newHash = md5(data);
+                    String newHash = ConfigManager.md5(data);
                     if (!newHash.equals(_instance.contentHash)) {
                         _instance = null;
-                        logger.info("${className} changed!");
+                        getLogger().info("${className} changed!");
                         return true;
                     }
                 }
@@ -71,7 +71,7 @@ public class ${className} extends ConfigBase {
 
         private Data() {
             String data = readFileString("${className}.json");
-            this.contentHash = md5(data);
+            this.contentHash = ConfigManager.md5(data);
 
             JSONArray jsonArray = JSON.parseArray(data);
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -90,7 +90,11 @@ public class ${className} extends ConfigBase {
         }
 
         public ${className} get(${keyType} ${keyName}) {
-            return confMap.get(${keyName});
+            ${className} config = confMap.get(${keyName});
+            if (config == null) {
+                getLogger().logConfigMissing(${className}.class.getSimpleName(), ${keyName});
+            }
+            return config;
         }
 
         public Collection<${className}> getAll() {
